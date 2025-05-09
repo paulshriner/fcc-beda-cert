@@ -26,10 +26,34 @@ app.get("/api/hello", function (req, res) {
 
 // endpoint to read dates from URL, in the format /api/:date?
 app.get("/api/:inp", (req, res) => {
-  res.json({"inp": req.params.inp});
+  // convert input to Date object
+  // input is string so need to convert to number if it's a number
+  const date = isNaN(req.params.inp) ? new Date(req.params.inp) : new Date(parseInt(req.params.inp));
+
+  // thanks https://www.w3schools.com/jsref/jsref_obj_date.asp for Date methods
+  if (date == "Invalid Date") {
+    // input could not be parsed as date
+    res.json({"error": "Invalid Date"});
+  } else {
+    // return date in milliseconds and formatted date
+    res.json({
+      "unix": Date.parse(date),
+      "utc": date.toUTCString()
+    });
+  }
 });
 
+// endpoint when no input is given, in the format /api/
+app.get("/api/", (req, res) => {
+  // get current date
+  const date = new Date();
 
+  // return date in milliseconds and formatted date
+  res.json({
+    "unix": Date.parse(date),
+    "utc": date.toUTCString()
+  });
+});
 
 // Listen on port set in environment variable or default to 3000
 var listener = app.listen(process.env.PORT || 3000, function () {
