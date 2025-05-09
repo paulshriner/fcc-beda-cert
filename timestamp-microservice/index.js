@@ -24,6 +24,11 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+// endpoint to read dates from URL, in the format /api/:date?
+app.get("/api/:inp", (req, res) => {
+  res.json({"inp": req.params.inp});
+});
+
 
 
 // Listen on port set in environment variable or default to 3000
