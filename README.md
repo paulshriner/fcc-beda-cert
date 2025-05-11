@@ -8,6 +8,10 @@ These are the projects I did in the completion of this certificate.
 
 Parses input from the URL with the JavaScript Date() method, returns as a JSON object milliseconds and formatted date, or an error on invalid input.
 
+### Request Header Parser Microservice
+
+Parses IP address, language, and user-agent from the request object and returns as a JSON object.
+
 ## Skills
 
 - Node.js
