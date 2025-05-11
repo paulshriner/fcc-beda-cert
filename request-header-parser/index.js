@@ -24,6 +24,18 @@ app.get('/api/hello', function (req, res) {
   res.json({ greeting: 'hello API' });
 });
 
+// endpoint for /api/whoami
+// thanks https://docs.uaparser.dev/intro/quick-start/using-node-js.html for req.headers
+// thanks https://expressjs.com/en/api.html#req.app for res.ip
+app.get('/api/whoami', (req, res) => {
+  // access needed properties from request, return as JSON
+  res.json({
+    "ipaddress": req.ip,
+    "language": req.headers['accept-language'],
+    "software": req.headers['user-agent']
+  });
+});
+
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);
