@@ -12,6 +12,10 @@ Parses input from the URL with the JavaScript Date() method, returns as a JSON o
 
 Parses IP address, language, and user-agent from the request object and returns as a JSON object.
 
+### URL Shortener Microservice
+
+Creates short URLs that navigate to the original URL. Short URL information is saved in JSON format in a file, which is read in to find where to navigate to or added to when creating a new short URL.
+
 ## Skills
 
 - Node.js
