@@ -34,8 +34,8 @@ app.get('/api/hello', function(req, res) {
 // Handles POST request for URL submission
 app.post('/api/shorturl/', (req, res) => {
   // Prepare URL for verifying with DNS lookup
-  let testURL = req.body.url.replace(REMOVE_BEGIN_URL, '');
-  testURL = testURL.replace(REMOVE_END_URL, '');
+  // thanks https://stackoverflow.com/a/44272047 for URL
+  let testURL = new URL(req.body.url).hostname;
   
   dns.lookup(testURL, {all: true}, (error, address) => {
     if (error) {
@@ -70,8 +70,34 @@ app.post('/api/shorturl/', (req, res) => {
 });
 
 // Handles /api/shorturl/...
-app.get('/api/shorturl/', (req, res) => {
-  res.json({"req": "req"});
+app.get('/api/shorturl/:inp', (req, res) => {
+  let found = false;
+  let redirectURL = "";
+  
+  if (!isNaN(req.params.inp)) {
+    // read in URLs from file
+    fs.readFile('./url.json', 'utf8', (err, data) => {
+      if (!err) {
+        let urlJSON = JSON.parse(data);
+        
+        // find if passed in shortURL is valid
+        for (const url in urlJSON) {
+          if (urlJSON[url] == req.params.inp) {
+            found = true;
+            redirectURL = url;
+            break;
+          }
+        }
+
+        // redirect or give error
+        if (!found) {
+          res.json({"error": "No short URL found for the given input"});
+        } else {
+          res.redirect(redirectURL);
+        }
+      }
+    });
+  }
 });
 
 app.listen(port, function() {
