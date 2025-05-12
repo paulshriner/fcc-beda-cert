@@ -5,6 +5,9 @@ const cors = require('cors');
 const dns = require('dns');
 const app = express();
 
+// Thanks https://stackoverflow.com/a/14939404 for reading/writing to file
+const fs = require("fs");
+
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
@@ -30,6 +33,7 @@ app.get('/api/hello', function(req, res) {
 
 // Handles POST request for URL submission
 app.post('/api/shorturl/', (req, res) => {
+  // Prepare URL for verifying with DNS lookup
   let testURL = req.body.url.replace(REMOVE_BEGIN_URL, '');
   testURL = testURL.replace(REMOVE_END_URL, '');
   
@@ -37,8 +41,31 @@ app.post('/api/shorturl/', (req, res) => {
     if (error) {
       res.json({"error": "invalid url"});
     } else {
-      res.json({"original_url": req.body.url});
-    }
+      let urlJSON = {};
+      
+      // read in URLs from file
+      // thanks https://www.geeksforgeeks.org/node-js-fs-readfile-method/, https://www.geeksforgeeks.org/node-js-fs-writefile-method/
+      // for further help with readFile and writeFile
+      fs.readFile('./url.json', 'utf8', (err, data) => {
+        // convert from string to JSON
+        if (!err) {
+          urlJSON = JSON.parse(data);
+        }
+
+        // add URL if needed
+        if (!urlJSON[req.body.url]) {
+          urlJSON[req.body.url] = Object.keys(urlJSON).length + 1;
+        }
+
+        // save file
+        fs.writeFile('./url.json', JSON.stringify(urlJSON), 'utf8', err => {});
+
+        res.json({
+          "original_url": req.body.url,
+          "short_url": urlJSON[req.body.url]
+        }); 
+      });
+    } 
   });
 });
 
