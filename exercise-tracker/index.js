@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema({
 let User = mongoose.model('User', userSchema);
 
 // thanks https://zellwk.com/blog/async-await-express/ for async/await
+// handles POST request to add a user
 app.post('/api/users/', async (req, res) => {
   // get user id
   let id = await findUser(req.body.username);
@@ -36,7 +37,7 @@ app.post('/api/users/', async (req, res) => {
     .then(u => {
       res.json({
         "username": req.body.username,
-        "_id": u._id.toString()
+        "_id": u._id
       });
     })
     .catch(err => {
@@ -49,6 +50,26 @@ app.post('/api/users/', async (req, res) => {
       "_id": id
     });
   }
+});
+
+// handles GET request to return list of users
+app.get('/api/users/', (req, res) => {
+  // finds users, returns as an array of JSON objects
+  User.find()
+  .then(u => {
+    let users = [];
+    let index = 0;
+
+    for (const user in u) {
+      users[user] = {
+        "_id": u[user]._id,
+        "username": u[user].name,
+        "__v": u[user].__v
+      }
+    }
+
+    res.json(users);
+  });
 });
 
 async function findUser (name) {
