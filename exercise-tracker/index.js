@@ -161,11 +161,15 @@ app.get('/api/users/:_id/logs', (req, res) => {
             "_id": u._id,
             "usename": u.name,
             "count": data.length,
-            "log": data.map(e => ({
-              "description": e.description,
-              "duration": e.duration,
-              "date": new Date(e.date).toDateString()
-            }))
+            // need to filter by date first, then limit by specified limit parameter, since exercises may not be ordered by date
+            "log": data.filter(e => new Date(req.query.from) != "Invalid Date" ? new Date(e.date) >= new Date(req.query.from) : e)
+                       .filter(e => new Date(req.query.to) != "Invalid Date" ? new Date(e.date) <= new Date(req.query.to) : e)
+                       .slice(0, !isNaN(req.query.limit) ? req.query.limit : data.length)
+                       .map(e => ({
+                          "description": e.description,
+                          "duration": e.duration,
+                          "date": new Date(e.date).toDateString()
+                        }))
           });
         })
         .catch(err => {
@@ -191,4 +195,4 @@ const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 });
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGO_URI);
