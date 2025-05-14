@@ -24,6 +24,28 @@ const userSchema = new mongoose.Schema({
 
 let User = mongoose.model('User', userSchema);
 
+// Schema for an exercise, contains id, description, duration, and date
+const exerciseSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  duration: {
+    type: Number,
+    required: true
+  },
+  date: {
+    type: String,
+    required: true
+  }
+});
+
+let Exercise = mongoose.model('Exercise', exerciseSchema);
+
 // thanks https://zellwk.com/blog/async-await-express/ for async/await
 // handles POST request to add a user
 app.post('/api/users/', async (req, res) => {
@@ -69,7 +91,58 @@ app.get('/api/users/', (req, res) => {
     }
 
     res.json(users);
+  })
+  .catch(err => {
+    console.log(err);
+    res.json({"error": "No users found!"});
   });
+});
+
+// handles POST request to add exercise
+app.post('/api/users/:_id/exercises/', (req, res) => {
+  // check date, if invalid or blank set to today's date
+  let date = new Date(req.body.date);
+  if (date == "Invalid Date") {
+    date = new Date();
+  }
+
+  if (req.body.description == "") {
+    res.json({"error": "Description cannot be blank!"});
+  } else if (isNaN(req.body.duration) || req.body.duration < 0) {
+    res.json({"error": "Duration cannot be non-numeric or less than 0!"});
+  } else {
+    // find user, insert exercise, then return response with exercise info
+    User.findById(req.params._id)
+    .then(u => {
+      if (u === null) {
+        res.json({"error": "No user with this ID exists!"});
+      } else {
+        Exercise.insertOne({
+          "id": req.params._id,
+          "description": req.body.description,
+          "duration": req.body.duration,
+          "date": date
+        })
+        .then(e => {
+          res.json({
+            "_id": u._id,
+            "username": u.name,
+            "date": date.toDateString(),
+            "duration": parseInt(req.body.duration),
+            "description": req.body.description
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          res.json({"error": "Could not insert exercise!"});
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.json({"error": "No user with this ID exists!"});
+    });
+  }
 });
 
 async function findUser (name) {
