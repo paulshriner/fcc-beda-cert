@@ -64,6 +64,7 @@ app.post('/api/users/', async (req, res) => {
     })
     .catch(err => {
       console.log(err);
+      res.json({"error": "User creation failed!"});
     });
   } else {
     // user already esists so just return info
@@ -143,6 +144,40 @@ app.post('/api/users/:_id/exercises/', (req, res) => {
       res.json({"error": "No user with this ID exists!"});
     });
   }
+});
+
+// handles GET request to retrieve exercise logs
+app.get('/api/users/:_id/logs', (req, res) => {
+    // find user by id, if not found return error
+    User.findById(req.params._id)
+    .then(u => {
+      if (u === null) {
+        res.json({"error": "No user with this ID exists!"});
+      } else {
+        // user found, so find corresponding exercises, then return formatted data
+        Exercise.find({"id": u._id})
+        .then(data => {
+          res.json({
+            "_id": u._id,
+            "usename": u.name,
+            "count": data.length,
+            "log": data.map(e => ({
+              "description": e.description,
+              "duration": e.duration,
+              "date": new Date(e.date).toDateString()
+            }))
+          });
+        })
+        .catch(err => {
+          console.log(err);
+          res.json({"error": "Could not find exercises!"});
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.json({"error": "No user with this ID exists!"});
+    });
 });
 
 async function findUser (name) {
